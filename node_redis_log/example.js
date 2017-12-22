@@ -11,7 +11,7 @@ var redis = require("redis"),
 
     // 方法二，通过client.auth(password,callback)连接redis服务器
 client.auth(RDS_PWD,function(){
-    console.log("通过验证")
+    console.log("通过验证,密码连接成功")
 })
 
 // 设置redis中的String字符串
@@ -32,7 +32,7 @@ client.hkeys("hash key",(err,replies) => {
     client.quit();
 })
 
-// 获取到所有hash散列中的keys的键值对
+// 获取到所有hash散列中的keys的键值对,结果是一个对象
 client.hgetall("hash key",(err,res) => {
         if(err){
             console.log("ERROR:" + err);

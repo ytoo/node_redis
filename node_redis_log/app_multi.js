@@ -16,7 +16,7 @@ client.on("connect",() => {
     // 设置redis中的set集合的值
     var key = "skills";
     client.sadd(key,"C#");
-    client.sadd(key,{"JS":"JavaScript"});
+    // client.sadd(key,{"JS":"JavaScript"});
     client.sadd(key,"JS");
     client.sadd(key,"nodeJS");
 
@@ -30,7 +30,9 @@ client.on("connect",() => {
         replies.forEach((reply,index) => {
             console.log("Reply " + index + ":" + reply.toString());
         });
-        client.quit();
+        client.quit(); // quit会触发client.on("end")事件
+        // 与之对应的还有一个client.end()方法，相对比较暴力；
+        // client.quit方法会接收到所有响应后发送quit命令，而client.end则是直接关闭；
     })
 
 })
