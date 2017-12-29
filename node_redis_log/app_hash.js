@@ -32,6 +32,7 @@ client.on("connect",function(){
         } 
         console.dir(res);
     })
+    
     // 获取到某个键的值
     client.hget("short","hashtest4",function(err,res){
         console.log(res);
@@ -39,7 +40,11 @@ client.on("connect",function(){
 
 })
 
-client.hmset("short","hashtest1","some value","hashtest11","some value1",redis.print);
+client.hmset("short","hashtest1","some value","hashtest11","some value1",(item) => {
+    console.log("----")
+    console.log(item);
+    console.log("----")
+});
 client.hmset("short",{"hashtest2":"some other value"},redis.print);
 
 

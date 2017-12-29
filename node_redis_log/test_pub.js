@@ -2,5 +2,16 @@
 
 var publish = require("./sub_pub_publish")
 
-// 发布信息
-publish("pingan",{"url":"www.pingan.com","company":"pingan Group","url2":"www.pingan.com","company2":"pingan Group"})
+// 发布信息 key => value的形式
+// var obj = {};
+// var str = "companyName"
+// for (var i = 0; i < 1; i++) {
+//     obj[str + i] = "www.pingan.com"  + i;
+// }
+
+console.time("pub");
+publish("chat","Time:",Date.now());
+console.timeEnd("pub")
+
+
+
