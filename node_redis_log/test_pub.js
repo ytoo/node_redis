@@ -9,8 +9,18 @@ var publish = require("./sub_pub_publish")
 //     obj[str + i] = "www.pingan.com"  + i;
 // }
 
+var count = 0;
+
+
 console.time("pub");
-publish("chat","Time:",Date.now());
+var timer = setInterval(function(){
+  publish("listKey","Time",Date.now());
+  count ++;
+  if(count > 10){
+      clearInterval(timer);
+  }
+},10)
+
 console.timeEnd("pub")
 
 
