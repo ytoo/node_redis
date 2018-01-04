@@ -1,38 +1,54 @@
 var mysql  = require('mysql');  //调用MySQL模块
+// mysql连接池 
+// mysql是有连接池的 并发大的情况下 如果你之前的连接不关闭 连接池满了 请求无法处理 程序就会阻塞 因此是用完是需要释放的
+var pool = mysql.createPool({  
+            host : 'localhost',       //主机
+            user : 'root',               //MySQL认证用户名
+            // password : '123456',        //MySQL认证用户密码
+            port: '3306',                   //端口号
+            database:"nodesample"
+    }); 
 
 module.exports.insert = function (sqlKey,sqlValue){
-    //创建一个connection
-    var connection = mysql.createConnection({     
-    host     : 'localhost',       //主机
-    user     : 'root',               //MySQL认证用户名
-    password : '123456',        //MySQL认证用户密码
-    port: '3306',                   //端口号
-    database:"nodesample"
+
+    pool.getConnection(function(err,conn){  
+        if(err){  
+            // callback(err,null,null);  
+        }else{  
+            //执行SQL语句，插入数据
+            var  addSql = 'INSERT INTO nodesample('+sqlKey.join(",")+') VALUES(?,?)';
+            var  addSqlParams = sqlValue;
+            conn.query(addSql,addSqlParams,function(err,results,fields){  
+                //释放连接  
+                // conn.release();  
+                //事件驱动回调  
+                // callback(err,results,fields);  
+            });  
+        }  
     }); 
-    // //创建一个connection
-    connection.connect(function(err){
-        if(err){        
-                console.log('[query] - :'+err);
-            return;
-        }
-        console.log('[connection connect]  succeed!');
-    });  
     
-    //执行SQL语句，插入数据
-    var  addSql = 'INSERT INTO nodesample(Id,'+sqlKey.join(",")+') VALUES(0,?,?,?,?)';
-    var  addSqlParams = sqlValue;
+    // //创建一个connection
+    // connection.connect(function(err){
+    //     if(err){        
+    //             console.log('[query] - :'+err);
+    //         return;
+    //     }
+    //     // console.log('[connection connect]  succeed!');
+    // });  
+    
+    
     // //增加数据
-    connection.query(addSql,addSqlParams,function (err, result) {
-        if(err){
-        console.log('[INSERT ERROR] - ',err.message);
-        return;
-        }        
-    });  
+    // connection.query(addSql,addSqlParams,function (err, result) {
+    //     if(err){
+    //     console.log('[INSERT ERROR] - ',err.message);
+    //     return;
+    //     }        
+    // });  
     // //关闭connection
-    connection.end(function(err){
-        if(err){        
-            return;
-        }
-        console.log('[connection end] succeed!');
-    });
+    // connection.end(function(err){
+    //     if(err){        
+    //         return;
+    //     }
+    //     // console.log('[connection end] succeed!');
+    // });
 }

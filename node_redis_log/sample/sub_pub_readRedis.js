@@ -3,8 +3,8 @@ var redis = require("redis"),
     RDS_PORT = 6379,  // 端口号
     RDS_HOST = "127.0.1.1",  // 服务器IP
     RDS_OPTS = {};    // 设置项
-var client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
-var client0 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
+var client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);
+var client0 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);  
 var client1 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
 var client2 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);  
 var client3 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);   
@@ -80,12 +80,8 @@ function dealWithMsg(listkey) {
         // 解析res数据,res的结果是一个数组，第一项是listKey，第二项是listKey对应的值(JSON转化成字符串后的值)
         console.log("执行client1")
         console.log(res);
-        // if(res) {
-        //     dealWithRes(res);
-        // } 
-        dealWithRes(res)
         dealWithMsg(listkey)
-        
+        dealWithRes(res);  
     })
     // client2.brpop(listkey,1000, (err, res) =>  {
     //     console.log("执行client2")
