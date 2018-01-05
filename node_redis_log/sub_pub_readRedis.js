@@ -6,8 +6,6 @@ var redis = require("redis"),
 var client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
 var client0 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
 var client1 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
-var client2 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);  
-var client3 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);   
 var mysql  = require('./test_mysql');  //调用MySQL模块
 
 // 订阅及发布，都是需要单独的client的，一个client同时只能做一个事情，这也就是上面初始化了那么多client的原因。
@@ -20,24 +18,33 @@ function getRedisData(listkey) {
     client.on("ready", () => {
         //订阅频道消息
         // client.subscribe("chat");
-        // client.subscribe("chat1");
         console.log("订阅成功。。。");
         // 判断此时redis缓存内是否有数据，如果它的长度不等于0，则说明之前的数据由于redis中断(宕机)未处理完毕，需要再次处理
-        client0.lrange(listkey, 0, -1, (err, res) => {
+        client.lrange(listkey, 0, -1, (err, res) => {
             if (err) {
                 console.log('-----初始化消息队列失败' + err)
             } else {
                 if (res.length > 0) {
                     console.log('开始消费已有队列');
                      dealWithMsg(listkey);
-                    res.forEach((v, i) => {
-                        // dealWithMsg(listkey);
-                    });
                 } else {
                     console.log('无初始队列');
                 }
             }
         });
+        client.lrange("backupsData", 0, -1, (err, res) => {
+            if (err) {
+                console.log('-----读取备份消息队列失败' + err)
+            } else {
+                if (res.length > 0) {
+                    console.log('开始消费备份队列');
+                     dealWithMsg("backupsData");
+                } else {
+                    console.log('无备份消息队列');
+                }
+            }
+        });
+        
     });
 
     client.on("error", (error) => {
@@ -76,27 +83,19 @@ function dealWithMsg(listkey) {
     // 必须使用和client不一样的客户端获取数据，否则使用client获取不到数据
     // 开启三个不同的客户端client，用来消费掉订阅过来的大量数据
     // 阻塞listkey这个队列1000秒钟,如果有数据,立刻从右侧（尾部）弹出,如果没有,持续阻塞,直到1000秒
-    client1.brpop(listkey,1000, (err, res) =>  {
+    client1.brpoplpush(listkey,"backupsData",1000, (err, res) =>  {
         // 解析res数据,res的结果是一个数组，第一项是listKey，第二项是listKey对应的值(JSON转化成字符串后的值)
         console.log("执行client1")
         console.log(res);
-        // if(res) {
-        //     dealWithRes(res);
-        // } 
-        dealWithRes(res)
-        dealWithMsg(listkey)
-        
+        if(res) {
+            dealWithRes(res)
+            // client.quit();
+        } 
+        if(listkey == "backupsData"){
+            client.lrem(listkey,0,/\*/,function(){})
+        }
+        dealWithMsg(listkey)  
     })
-    // client2.brpop(listkey,1000, (err, res) =>  {
-    //     console.log("执行client2")
-    //     console.log(res);
-    //     // dealWithRes(res);
-    // })
-    // client3.brpop(listkey,1000, (err, res) =>  {
-    //     console.log("执行client3")
-    //     console.log(res);
-    //     // dealWithRes(res);
-    // })
 }
 
 function dealWithRes(res){
