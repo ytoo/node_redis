@@ -20,7 +20,7 @@ module.exports.insert = function (sqlKey,sqlValue){
             var  addSqlParams = sqlValue;
             conn.query(addSql,addSqlParams,function(err,results,fields){  
                 //释放连接  
-                // conn.release();  
+                conn.release();  
                 //事件驱动回调  
                 // callback(err,results,fields);  
             });  

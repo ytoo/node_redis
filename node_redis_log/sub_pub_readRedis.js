@@ -5,9 +5,7 @@ var redis = require("redis"),
     RDS_OPTS = {};    // 设置项
 var client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
 var client0 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
-var client1 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS); 
-var client2 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);  
-var client3 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);   
+var client1 = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);   
 var mysql  = require('./test_mysql');  //调用MySQL模块
 
 // 订阅及发布，都是需要单独的client的，一个client同时只能做一个事情，这也就是上面初始化了那么多client的原因。
@@ -20,7 +18,6 @@ function getRedisData(listkey) {
     client.on("ready", () => {
         //订阅频道消息
         // client.subscribe("chat");
-        // client.subscribe("chat1");
         console.log("订阅成功。。。");
         // 判断此时redis缓存内是否有数据，如果它的长度不等于0，则说明之前的数据由于redis中断(宕机)未处理完毕，需要再次处理
         client0.lrange(listkey, 0, -1, (err, res) => {
@@ -30,9 +27,6 @@ function getRedisData(listkey) {
                 if (res.length > 0) {
                     console.log('开始消费已有队列');
                      dealWithMsg(listkey);
-                    res.forEach((v, i) => {
-                        // dealWithMsg(listkey);
-                    });
                 } else {
                     console.log('无初始队列');
                 }
