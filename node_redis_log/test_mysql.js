@@ -13,42 +13,23 @@ module.exports.insert = function (sqlKey,sqlValue){
 
     pool.getConnection(function(err,conn){  
         if(err){  
-            // callback(err,null,null);  
-        }else{  
-            //执行SQL语句，插入数据
-            var  addSql = 'INSERT INTO nodesample('+sqlKey.join(",")+') VALUES(?,?)';
-            var  addSqlParams = sqlValue;
-            conn.query(addSql,addSqlParams,function(err,results,fields){  
-                //释放连接  
-                conn.release();  
-                //事件驱动回调  
-                // callback(err,results,fields);  
-            });  
-        }  
+            throw err;
+        } 
+        //执行SQL语句，插入数据
+        var  addSql = 'INSERT INTO nodesample('+sqlKey.join(",")+') VALUES(?,?)';
+        var  addSqlParams = sqlValue;
+        conn.query(addSql,addSqlParams,function(err,results,fields){  
+            //释放连接  
+            conn.release();  
+        });  
+         
     }); 
-    
-    // //创建一个connection
-    // connection.connect(function(err){
-    //     if(err){        
-    //             console.log('[query] - :'+err);
-    //         return;
-    //     }
-    //     // console.log('[connection connect]  succeed!');
-    // });  
-    
-    
-    // //增加数据
-    // connection.query(addSql,addSqlParams,function (err, result) {
-    //     if(err){
-    //     console.log('[INSERT ERROR] - ',err.message);
-    //     return;
-    //     }        
-    // });  
-    // //关闭connection
-    // connection.end(function(err){
-    //     if(err){        
-    //         return;
-    //     }
-    //     // console.log('[connection end] succeed!');
-    // });
 }
+
+
+// https://www.cnblogs.com/jkll/p/4550100.html
+// https://www.cnblogs.com/yansj1997/p/6550201.html
+// http://blog.csdn.net/zhuming3834/article/details/77184193
+// http://redisdoc.com/list/rpoplpush.html
+// http://redisdoc.com/list/lrem.html#lrem
+// https://www.zhihu.com/question/43688764?sort=created

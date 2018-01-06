@@ -7,10 +7,6 @@ var redis = require("redis"),
     client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);
 var URL = require("url");
 var url = URL.parse("http://localhost:3000/management/html/news/dirlist?id=1&page=1#index")
-
-
-
-
 // 向redis的list中添加数据
 /**
  * 
