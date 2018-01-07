@@ -19,7 +19,7 @@ function getRedisData(listkey) {
         //订阅频道消息
         // client.subscribe("chat");
         console.log("订阅成功。。。");
-        // 判断此时redis缓存内是否有数据，如果它的长度不等于0，则说明之前的数据由于redis中断(宕机)未处理完毕，需要再次处理
+        // 判断此时redis的list内是否有数据，如果它的长度不等于0，则说明之前的数据由于redis中断(宕机)未处理完毕，需要再次处理
         client.lrange(listkey, 0, -1, (err, res) => {
             if (err) {
                 console.log('-----初始化消息队列失败' + err)
@@ -37,8 +37,16 @@ function getRedisData(listkey) {
                 console.log('-----读取备份消息队列失败' + err)
             } else {
                 if (res.length > 0) {
-                    console.log('开始消费备份队列');
-                     dealWithMsg("backupsData");
+                    console.log('开始消费backupsData备份队列');
+                    res.forEach((i,v)=>{
+                        client0.brpop("backupsData",1000,function(err,res){
+                            // 解析res数据,res的结果是一个数组，第一项是listKey，
+                            // 第二项是listKey对应的值(对象通过JSON转化成字符串后的值)
+                            console.log("backupsData")
+                            console.log(res);
+                        })
+                    })
+                   
                 } else {
                     console.log('无备份消息队列');
                 }
@@ -84,16 +92,19 @@ function dealWithMsg(listkey) {
     // 开启三个不同的客户端client，用来消费掉订阅过来的大量数据
     // 阻塞listkey这个队列1000秒钟,如果有数据,立刻从右侧（尾部）弹出,如果没有,持续阻塞,直到1000秒
     client1.brpoplpush(listkey,"backupsData",1000, (err, res) =>  {
-        // 解析res数据,res的结果是一个数组，第一项是listKey，第二项是listKey对应的值(JSON转化成字符串后的值)
+        // 解析res数据,res的结果是一个对象转换后的字符串
         console.log("执行client1")
         console.log(res);
         if(res) {
             dealWithRes(res)
-            // client.quit();
+        //     client0.brpop("backupsData",1000,function(err,res){
+        //         console.log("backupsData")
+        //         console.log(res);
+        //    })
         } 
-        if(listkey == "backupsData"){
-            client.lrem(listkey,0,/\*/,function(){})
-        }
+        // if(listkey == "backupsData"){
+        //     client.lrem(listkey,0,/./,function(){})
+        // }
         dealWithMsg(listkey)  
     })
 }
@@ -101,13 +112,13 @@ function dealWithMsg(listkey) {
 function dealWithRes(res){
     var sqlKey = [];
     var sqlValue = [];
-    var result = JSON.parse(res[1])
+    var result = JSON.parse(res)
     for (var key in result) {
         sqlKey.push(key);
         sqlValue.push(result[key])
     }
     // 将获取到的数据连接到mysql数据库,并插入数据
-    mysql.insert(sqlKey,sqlValue);
+    mysql.insert(res,client0,sqlKey,sqlValue);
 }
 
 

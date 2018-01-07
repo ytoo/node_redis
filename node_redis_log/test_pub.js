@@ -7,7 +7,7 @@ console.time("pub");
 var timer = setInterval(function(){
   publish("listKey","time",count);
   count ++;
-  if(count > 1000){
+  if(count > 200){
       clearInterval(timer);
   }
 },10)

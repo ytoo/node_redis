@@ -9,7 +9,7 @@ var pool = mysql.createPool({
             database:"nodesample"
     }); 
 
-module.exports.insert = function (sqlKey,sqlValue){
+module.exports.insert = function (res,client,sqlKey,sqlValue){
 
     pool.getConnection(function(err,conn){  
         if(err){  
@@ -19,17 +19,12 @@ module.exports.insert = function (sqlKey,sqlValue){
         var  addSql = 'INSERT INTO nodesample('+sqlKey.join(",")+') VALUES(?,?)';
         var  addSqlParams = sqlValue;
         conn.query(addSql,addSqlParams,function(err,results,fields){  
+            client.lrem("backupsData",1,res,function(){
+                console.log("backupsData已删除数据:" + res);
+            })
             //释放连接  
             conn.release();  
         });  
          
     }); 
 }
-
-
-// https://www.cnblogs.com/jkll/p/4550100.html
-// https://www.cnblogs.com/yansj1997/p/6550201.html
-// http://blog.csdn.net/zhuming3834/article/details/77184193
-// http://redisdoc.com/list/rpoplpush.html
-// http://redisdoc.com/list/lrem.html#lrem
-// https://www.zhihu.com/question/43688764?sort=created

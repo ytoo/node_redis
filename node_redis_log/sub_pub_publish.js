@@ -3,8 +3,8 @@
 var redis = require("redis"), 
     RDS_PORT = 6379,  // 端口号
     RDS_HOST = "127.0.1.1",  // 服务器IP
-    RDS_OPTS = {},    // 设置项
-    client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);
+    RDS_OPTS = {};    // 设置项
+    
 var URL = require("url");
 var url = URL.parse("http://localhost:3000/management/html/news/dirlist?id=1&page=1#index")
 // 向redis的list中添加数据
@@ -17,6 +17,7 @@ var url = URL.parse("http://localhost:3000/management/html/news/dirlist?id=1&pag
  */
 module.exports = function MessageQueue(listKey,hkey,hvalue) {  
 
+    var client = redis.createClient(RDS_PORT,RDS_HOST,RDS_OPTS);
     var hoptions = {};
     hoptions[hkey] = hvalue;
     hoptions.host = url.host;
@@ -33,6 +34,8 @@ module.exports = function MessageQueue(listKey,hkey,hvalue) {
        //client将指定的hkey发布到chat这个频道
        //然后订阅这个频道的订阅者就会收到消息
     //    client.publish("chat",JSON.stringify(hoptions) );
+
+     client.quit();
 
     });
    
