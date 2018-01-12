@@ -11,15 +11,11 @@ var mysql  = require('./test_mysql');  //调用MySQL模块
 // 订阅及发布，都是需要单独的client的，一个client同时只能做一个事情，这也就是上面初始化了那么多client的原因。
 
 function getRedisData(listkey) {  
-
-    dealWithMsg(listkey);
-
     //客户端连接redis成功后执行回调
     client.on("ready", () => {
-        //订阅频道消息
-        // client.subscribe("chat");
+        dealWithMsg(listkey);
         console.log("订阅成功。。。");
-        // 判断此时redis的list内是否有数据，如果它的长度不等于0，则说明之前的数据由于redis中断(宕机)未处理完毕，需要再次处理
+        // 判断此时redis的list内是否有数据，如果它的长度不等于0，则说明之前的数据由于消费端中断未处理完毕，需要再次处理
         client.lrange(listkey, 0, -1, (err, res) => {
             if (err) {
                 console.log('-----初始化消息队列失败' + err)
@@ -32,6 +28,7 @@ function getRedisData(listkey) {
                 }
             }
         });
+        // 判断备份数据backupsData中是否有未写入mysql的数据
         client.lrange("backupsData", 0, -1, (err, res) => {
             if (err) {
                 console.log('-----读取备份消息队列失败' + err)
@@ -39,11 +36,10 @@ function getRedisData(listkey) {
                 if (res.length > 0) {
                     console.log('开始消费backupsData备份队列');
                     res.forEach((i,v)=>{
-                        client0.brpop("backupsData",1000,function(err,res){
-                            // 解析res数据,res的结果是一个数组，第一项是listKey，
-                            // 第二项是listKey对应的值(对象通过JSON转化成字符串后的值)
+                        client0.brpoplpush("backupsData","backupsData",1000,function(err,res){
                             console.log("backupsData")
                             console.log(res);
+                            mysql.insert(res,client0);
                         })
                     })
                    
@@ -82,45 +78,24 @@ function getRedisData(listkey) {
     client.on("end",err => {
         console.log("与redis服务器的连接已关闭");
     })
+
+    
 }
 
-
-
 function dealWithMsg(listkey) {   
-   
     // 必须使用和client不一样的客户端获取数据，否则使用client获取不到数据
     // 开启三个不同的客户端client，用来消费掉订阅过来的大量数据
-    // 阻塞listkey这个队列1000秒钟,如果有数据,立刻从右侧（尾部）弹出,如果没有,持续阻塞,直到1000秒
+    // 阻塞listkey这个队列1000秒钟,如果有数据,立刻从右侧（尾部）弹出,并将弹出的数据存入新的备份队列,如果没有,持续阻塞,直到1000秒(0代表没有数据时无限期阻塞)
     client1.brpoplpush(listkey,"backupsData",1000, (err, res) =>  {
         // 解析res数据,res的结果是一个对象转换后的字符串
-        console.log("执行client1")
+        console.log("执行brpoplpush操作")
         console.log(res);
         if(res) {
-            dealWithRes(res)
-        //     client0.brpop("backupsData",1000,function(err,res){
-        //         console.log("backupsData")
-        //         console.log(res);
-        //    })
+             // 将获取到的数据连接到mysql数据库,并插入数据
+            mysql.insert(res,client0);
         } 
-        // if(listkey == "backupsData"){
-        //     client.lrem(listkey,0,/./,function(){})
-        // }
         dealWithMsg(listkey)  
     })
 }
-
-function dealWithRes(res){
-    var sqlKey = [];
-    var sqlValue = [];
-    var result = JSON.parse(res)
-    for (var key in result) {
-        sqlKey.push(key);
-        sqlValue.push(result[key])
-    }
-    // 将获取到的数据连接到mysql数据库,并插入数据
-    mysql.insert(res,client0,sqlKey,sqlValue);
-}
-
-
 
 module.exports =  getRedisData

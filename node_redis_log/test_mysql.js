@@ -9,17 +9,25 @@ var pool = mysql.createPool({
             database:"nodesample"
     }); 
 
-module.exports.insert = function (res,client,sqlKey,sqlValue){
+module.exports.insert = function (res,Client){
 
     pool.getConnection(function(err,conn){  
         if(err){  
             throw err;
         } 
+        var sqlKey = [];
+        var sqlValue = [];
+        var result = JSON.parse(res)
+        for (var key in result) {
+            sqlKey.push(key);
+            sqlValue.push(result[key])
+        }
         //执行SQL语句，插入数据
         var  addSql = 'INSERT INTO nodesample('+sqlKey.join(",")+') VALUES(?,?)';
         var  addSqlParams = sqlValue;
         conn.query(addSql,addSqlParams,function(err,results,fields){  
-            client.lrem("backupsData",1,res,function(){
+            // 数据写入mysql后，删除备份数据中的对应数据
+            Client.lrem("backupsData",0,res,function(){
                 console.log("backupsData已删除数据:" + res);
             })
             //释放连接  
