@@ -3,5 +3,6 @@
 - https://www.cnblogs.com/zhongweiv/p/node_redis.html
 - https://www.tuicool.com/articles/7biABn
 - http://redisdoc.com/list/rpoplpush.html
+- http://redisdoc.com/list/lrem.html#lrem
 - http://www.redis.cn/
 - http://www.runoob.com/nodejs/nodejs-mysql.html
